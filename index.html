@@ -237,6 +237,7 @@
     <button class="btn primary" id="authBtn">Log in</button>
     <div class="note" id="authNote"></div>
     <div class="note" style="margin-top:10px"><span id="authToggle" style="color:var(--accent);cursor:pointer;font-weight:600">Create an account</span></div>
+    <div class="note" style="margin-top:8px"><span id="authForgot" style="color:var(--accent);cursor:pointer;font-weight:600">Forgot password?</span></div>
   </div>
 </div>
 
@@ -368,6 +369,8 @@ let authMode="login"; // login | signup
     btn.disabled=false;btn.textContent=orig;
     if(error&&note)note.textContent=esc(error.message);
   };
+  const forgot=$("authForgot");
+  if(forgot)forgot.onclick=async()=>{const email=em.value.trim();if(!email){if(note)note.textContent="Type your email above first, then tap Forgot password.";return;}forgot.textContent="Sending…";const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin});forgot.textContent="Forgot password?";if(note)note.textContent=error?esc(error.message):"Reset link sent — open that email on this device to get in, then set a password in Settings.";};
   pw.onkeydown=e=>{if(e.key==="Enter")btn.click();};
   em.onkeydown=e=>{if(e.key==="Enter")pw.focus();};
 })();
@@ -1862,11 +1865,13 @@ async function generatePDF(r,days){
 function settingsDialog(){
   openModal(`<h2>Settings</h2>
     <div class="field"><label>Signed in as</label><input value="${esc(USER?USER.email:"")}" disabled></div>
+    <div class="field"><label>Set / change password</label><input id="s_pw" type="password" placeholder="New password (6+ characters)" autocomplete="new-password"><button class="btn primary" id="s_pwbtn" style="margin-top:8px;padding:8px 14px">Save password</button><div style="color:var(--faint);font-size:12px;margin-top:6px">Set this, then log in with your email + this password on your phone.</div></div>
     <p style="color:var(--muted);font-size:13px;margin-bottom:4px">Your data is synced to your own Supabase project. Download a copy anytime as a safety net.</p>
     <div class="modal-act" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn primary" id="s_exp">Download backup</button><button class="btn ghost" id="s_out">Sign out</button></div>
     <div class="modal-act" style="margin-top:20px"><button class="btn ghost" data-close>Close</button></div>`);
   $("s_exp").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="command-desk-"+todayStr()+".json";a.click();toast("Backup downloaded");};
   $("s_out").onclick=async()=>{await sb.auth.signOut();location.reload();};
+  $("s_pwbtn").onclick=async()=>{const p=$("s_pw").value;if(p.length<6){toast("Password needs 6+ characters");return;}const b=$("s_pwbtn");b.disabled=true;const o=b.textContent;b.textContent="Saving…";const {error}=await sb.auth.updateUser({password:p});b.disabled=false;b.textContent=o;if(error){toast("Couldn't save: "+error.message);}else{$("s_pw").value="";toast("Password updated ✓ — use it to log in anywhere");}};
 }
 
 /* ---------- theme ---------- */
