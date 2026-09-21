@@ -22,29 +22,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --bg:#ffffff; --surface:#ffffff; --surface-2:#f4f5f7;
-    --ink:#141618; --muted:#6b6f76; --faint:#a1a5ac;
-    --border:#e7e8ec; --border-strong:#d4d6dc;
+    --bg:#f5f6f8; --surface:#ffffff; --surface-2:#f0f2f5;
+    --ink:#111b21; --muted:#667781; --faint:#8696a0;
+    --border:#e9edef; --border-strong:#d9dee1;
     --accent:#3f93dd; --accent-ink:#2d78ba; --accent-wash:#e7f2fc; --on-accent:#ffffff;
     --red:#dc342c; --red-wash:#fcebea;
     --amber:#bd7a12; --amber-wash:#fbf1df;
     --violet:#6d47c9; --violet-wash:#efeafb;
     --green:#1f9254; --green-wash:#e6f5ec;
     --blue:#2f7fc7; --blue-wash:#e7f0fb;
-    --shadow:0 1px 2px rgba(20,30,50,.06),0 8px 24px rgba(20,30,50,.05);
-    --radius:12px; --radius-sm:8px;
-    --sans:'Inter',system-ui,-apple-system,sans-serif;
-    --display:'Space Grotesk',var(--sans);
+    --shadow:0 1px 2px rgba(11,20,26,.05),0 1px 3px rgba(11,20,26,.04);
+    --radius:14px; --radius-sm:10px; --radius-lg:18px;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --display:var(--sans);
   }
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-    --bg:#0b0c0e;--surface:#15171a;--surface-2:#1e2126;--ink:#eef0f3;--muted:#9aa0aa;--faint:#6b7079;
-    --border:#262a30;--border-strong:#3a3f47;--accent:#5aa9e6;--accent-ink:#7bbcf0;--accent-wash:#15324c;--on-accent:#0b0c0e;
+    --bg:#0b141a;--surface:#111b21;--surface-2:#202c33;--ink:#e9edef;--muted:#8696a0;--faint:#667781;
+    --border:#222d34;--border-strong:#2f3b43;--accent:#5aa9e6;--accent-ink:#7bbcf0;--accent-wash:#15324c;--on-accent:#0b141a;
     --red:#f0716c;--red-wash:#3a1d1c;--amber:#e0a94a;--amber-wash:#3a2c14;--violet:#b18bf5;--violet-wash:#28213f;
     --green:#5cc281;--green-wash:#163121;--blue:#7bbcf0;--blue-wash:#152a3e;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);}}
   :root[data-theme="dark"]{
-    --bg:#0b0c0e;--surface:#15171a;--surface-2:#1e2126;--ink:#eef0f3;--muted:#9aa0aa;--faint:#6b7079;
-    --border:#262a30;--border-strong:#3a3f47;--accent:#5aa9e6;--accent-ink:#7bbcf0;--accent-wash:#15324c;--on-accent:#0b0c0e;
+    --bg:#0b141a;--surface:#111b21;--surface-2:#202c33;--ink:#e9edef;--muted:#8696a0;--faint:#667781;
+    --border:#222d34;--border-strong:#2f3b43;--accent:#5aa9e6;--accent-ink:#7bbcf0;--accent-wash:#15324c;--on-accent:#0b141a;
     --red:#f0716c;--red-wash:#3a1d1c;--amber:#e0a94a;--amber-wash:#3a2c14;--violet:#b18bf5;--violet-wash:#28213f;
     --green:#5cc281;--green-wash:#163121;--blue:#7bbcf0;--blue-wash:#152a3e;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);}
@@ -78,23 +78,24 @@
   .qadd .go{background:var(--accent);color:var(--on-accent);font-weight:600;padding:8px 14px;border-radius:7px;font-size:13px}
   .content{padding:26px;max-width:980px;width:100%;margin:0 auto}
   .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap}
-  .page-head h1{font-family:var(--display);font-size:23px;font-weight:600;letter-spacing:-.02em}
+  .page-head h1{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.02em}
   .page-head .sub{color:var(--muted);font-size:13px;margin-top:3px}
   .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:26px}
-  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;cursor:pointer;transition:transform .1s,border-color .12s}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 16px;cursor:pointer;box-shadow:var(--shadow);transition:transform .1s,border-color .12s,box-shadow .12s}
   .stat:hover{border-color:var(--border-strong);transform:translateY(-1px)}
   .stat .n{font-family:var(--display);font-size:27px;font-weight:600;line-height:1;letter-spacing:-.02em}
   .stat .l{font-size:12px;color:var(--muted);margin-top:6px}
   .stat.alert .n{color:var(--red)}
   .sec{margin-bottom:26px}
   .sec-head{display:flex;align-items:center;gap:9px;margin-bottom:11px}
-  .sec-head h2{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.01em}
+  .sec-head h2{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
   .sec-head .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
   .sec-head .c{font-family:var(--display);font-size:12px;color:var(--faint);font-weight:600}
   .dot-red{background:var(--red)}.dot-amber{background:var(--amber)}.dot-violet{background:var(--violet)}.dot-blue{background:var(--blue)}.dot-green{background:var(--green)}.dot-mut{background:var(--faint)}
-  .list{display:flex;flex-direction:column;gap:6px}
-  .task{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;transition:border-color .12s}
-  .task:hover{border-color:var(--border-strong)}
+  .list{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .task{display:flex;align-items:center;gap:12px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;padding:13px 15px;transition:background .12s}
+  .task:last-child{border-bottom:none}
+  .task:hover{background:var(--surface-2)}
   .task.done{opacity:.55}
   .check{width:19px;height:19px;border-radius:6px;border:1.6px solid var(--border-strong);flex-shrink:0;display:grid;place-items:center;transition:.12s;background:var(--surface)}
   .check:hover{border-color:var(--accent)}
@@ -117,7 +118,7 @@
   .icobtn:hover{background:var(--surface-2);color:var(--ink)}
   .icobtn svg{width:15px;height:15px}
   .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-  .pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .12s,transform .1s}
+  .pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .12s,transform .1s,box-shadow .12s}
   .pcard:hover{border-color:var(--border-strong);transform:translateY(-1px)}
   .pcard-top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
   .cat{font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:var(--surface-2);color:var(--muted)}
@@ -141,7 +142,7 @@
   .field textarea{resize:vertical;min-height:64px;line-height:1.5}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .modal-act{display:flex;gap:9px;justify-content:flex-end;margin-top:20px}
-  .btn{padding:9px 16px;border-radius:8px;font-weight:600;font-size:13.5px;transition:.12s}
+  .btn{padding:9px 18px;border-radius:10px;font-weight:600;font-size:13.5px;transition:.12s}
   .btn.primary{background:var(--accent);color:var(--on-accent)}
   .btn.primary:hover{opacity:.85}
   .btn.ghost{color:var(--muted);border:1px solid var(--border-strong)}
@@ -381,7 +382,7 @@ async function onSignedIn(session){
 
 /* ---------- data layer ---------- */
 const mapTask=r=>({id:r.id,title:r.title,projectId:r.project_id,space:r.space||"business",due:r.due||"",priority:r.priority,status:r.status,waitingOn:r.waiting_on||"",notes:r.notes||"",source:r.source||"app",created:r.created_at,done:r.done_at});
-const mapProj=r=>({id:r.id,name:r.name,customerId:r.customer_id,parentId:r.parent_id,kind:r.kind||"project",category:r.category,space:r.space||"business",status:r.status,priority:r.priority,nextAction:r.next_action||"",notes:r.notes||"",log:r.log||[],created:r.created_at,updated:r.updated_at});
+const mapProj=r=>({id:r.id,name:r.name,customerId:r.customer_id,parentId:r.parent_id,kind:r.kind||"project",category:r.category,space:r.space||"business",status:r.status,priority:r.priority,photo:r.photo||"",nextAction:r.next_action||"",notes:r.notes||"",log:r.log||[],created:r.created_at,updated:r.updated_at});
 const childrenOf=pid=>state.projects.filter(p=>p.parentId===pid);
 function descendantsOf(pid){const out=[];const walk=id=>childrenOf(id).forEach(c=>{out.push(c);walk(c.id);});walk(pid);return out;}
 const projTaskCount=pid=>{const ids=[pid,...descendantsOf(pid).map(p=>p.id)];return state.tasks.filter(t=>ids.includes(t.projectId)&&t.status!=="done"&&t.status!=="cancelled").length;};
@@ -389,7 +390,7 @@ const mapCust=r=>({id:r.id,name:r.name,type:r.type||"sales",company:r.company||"
 const mapExpense=r=>({id:r.id,expDate:r.exp_date||"",description:r.description||"",amount:Number(r.amount)||0,currency:r.currency||"USD",category:r.category||"",reimburse:r.reimburse||"none",customerId:r.customer_id,projectId:r.project_id,receipt:r.receipt||"",space:r.space||"business",notes:r.notes||"",created:r.created_at});
 const mapContact=r=>({id:r.id,name:r.name,title:r.title||"",customerId:r.customer_id,company:r.company||"",email:r.email||"",phone:r.phone||"",photo:r.photo||"",space:r.space||"business",notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapOrder=r=>({id:r.id,customerId:r.customer_id,orderDate:r.order_date||"",status:r.status||"confirmed",currency:r.currency||"USD",items:r.items||[],tax:Number(r.tax)||0,shipping:Number(r.shipping)||0,commRate:Number(r.comm_rate)||0,commFlat:Number(r.comm_flat)||0,commPaid:r.comm_paid===true,fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
-const mapProduct=r=>({id:r.id,name:r.name,sku:r.sku||"",category:r.category||"",dosage:r.dosage||"",unit:r.unit||"",packSize:r.pack_size||"",price:Number(r.price)||0,currency:r.currency||"USD",ruo:r.ruo===true,active:r.active!==false,fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
+const mapProduct=r=>({id:r.id,name:r.name,photo:r.photo||"",sku:r.sku||"",category:r.category||"",dosage:r.dosage||"",unit:r.unit||"",packSize:r.pack_size||"",price:Number(r.price)||0,currency:r.currency||"USD",ruo:r.ruo===true,active:r.active!==false,fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapJournal=r=>({id:r.id,entryDate:r.entry_date||"",text:r.text||"",type:r.type||"Note",customerId:r.customer_id,projectId:r.project_id,space:r.space||"business",done:r.done_at||null,created:r.created_at});
 const mapStake=r=>({id:r.id,name:r.name,role:r.role||"",org:r.org||"",relationship:r.relationship||"Colleague",email:r.email||"",phone:r.phone||"",photo:r.photo||"",space:r.space||"business",followUp:r.follow_up||"",log:r.log||[],fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapTrip=r=>({id:r.id,destination:r.destination||"",purpose:r.purpose||"",startDate:r.start_date||"",endDate:r.end_date||"",space:r.space||"business",notes:r.notes||"",created:r.created_at});
@@ -531,6 +532,7 @@ async function writeProject(id,patch){
   if("log"in patch)db.log=patch.log;if("space"in patch)db.space=patch.space;if("customerId"in patch)db.customer_id=patch.customerId;
   if("parentId"in patch)db.parent_id=patch.parentId;
   if("kind"in patch)db.kind=patch.kind;
+  if("photo"in patch)db.photo=patch.photo;
   const {error}=await sb.from("projects").update(db).eq("id",id);
   if(error){toast("Sync error");reload().then(render);}
 }
@@ -574,7 +576,7 @@ async function writeOrder(id,patch){
 async function writeProduct(id,patch){
   const p=state.products.find(x=>x.id===id);Object.assign(p,patch);render();
   const db={updated_at:new Date().toISOString()};
-  ["name","sku","category","dosage","unit","price","currency","ruo","active","fields","notes"].forEach(k=>{if(k in patch)db[k]=patch[k];});
+  ["name","photo","sku","category","dosage","unit","price","currency","ruo","active","fields","notes"].forEach(k=>{if(k in patch)db[k]=patch[k];});
   if("packSize"in patch)db.pack_size=patch.packSize;
   const {error}=await sb.from("products").update(db).eq("id",id);
   if(error){toast("Sync error");reload().then(render);}
@@ -760,7 +762,7 @@ function pcard(p){
   const cn=custName(p.customerId);
   const ongoing=p.kind==="ongoing";
   return `<div class="pcard" data-proj="${p.id}"><div class="pcard-top"><span class="cat">${esc(p.category||"—")}</span>${ongoing?`<span class="pill" style="background:var(--ink);color:var(--bg);font-weight:600">Ongoing</span>`:""}${spaceTag}<span class="pill ${sp}" style="margin-left:auto">${cap(p.status)}</span></div>
-    <h3>${esc(p.name)}</h3>${cn?`<div class="na" style="margin-bottom:3px"><b>Client:</b> ${esc(cn)}</div>`:""}<div class="na"><b>Next:</b> ${esc(p.nextAction||"—")}</div>
+    <div style="display:flex;gap:11px;align-items:flex-start;margin-top:2px">${logoBox(p.name,p.photo,40)}<div style="min-width:0;flex:1"><h3 style="margin:0">${esc(p.name)}</h3>${cn?`<div class="na" style="margin-bottom:3px"><b>Client:</b> ${esc(cn)}</div>`:""}<div class="na"><b>Next:</b> ${esc(p.nextAction||"—")}</div></div></div>
     <div class="pcard-foot" style="flex-wrap:wrap;gap:8px">${kids.length?`<span class="pill mut">${kids.length} sub-project${kids.length===1?'':'s'}</span>`:""}<span>${openN} open task${openN===1?'':'s'}</span>${overdue?`<span class="pill red">${overdue} overdue</span>`:""}<span class="spacer"></span><span class="prio ${p.priority}" style="height:14px"></span></div></div>`;
 }
 function renderCustomers(){
@@ -802,6 +804,11 @@ function avatar(name,photo,size){size=size||40;
   const init=(name||"?").trim().split(/\s+/).map(s=>s[0]).slice(0,2).join("").toUpperCase();
   return photo?`<div style="width:${size}px;height:${size}px;border-radius:50%;background:center/cover no-repeat url('${photo}');flex-shrink:0;border:1px solid var(--border)"></div>`
     :`<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;font-size:${Math.round(size*0.36)}px;font-weight:600;color:var(--muted);flex-shrink:0">${esc(init)}</div>`;
+}
+function logoBox(name,photo,size){size=size||40;const r=Math.max(6,Math.round(size*0.22));
+  const init=(name||"?").trim().split(/\s+/).map(s=>s[0]).slice(0,2).join("").toUpperCase();
+  return photo?`<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:var(--surface) center/contain no-repeat url('${photo}');flex-shrink:0;border:1px solid var(--border)"></div>`
+    :`<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;font-size:${Math.round(size*0.34)}px;font-weight:700;color:var(--muted);flex-shrink:0">${esc(init)}</div>`;
 }
 function pickPhoto(cb,max){max=max||320;
   const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
@@ -878,7 +885,7 @@ function renderProjectDetail(){
   const kids=childrenOf(p.id);const parent=p.parentId?state.projects.find(x=>x.id===p.parentId):null;
   let h=`<div class="page-head" style="align-items:center"><div style="display:flex;align-items:center;gap:12px">
     <button class="icobtn" id="backProj" style="width:32px;height:32px;border:1px solid var(--border)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <div>${parent?`<div style="font-size:12px;color:var(--muted);margin-bottom:1px"><span data-proj="${parent.id}" style="cursor:pointer;font-weight:600">${esc(parent.name)}</span> ›</div>`:""}<h1>${esc(p.name)}</h1><div class="sub">${custName(p.customerId)?`<b>${esc(custName(p.customerId))}</b> · `:""}${esc(p.category||"—")} · ${cap(p.space)} · ${cap(p.status)} · priority ${cap(p.priority)}</div></div></div>
+    ${logoBox(p.name,p.photo,40)}<div>${parent?`<div style="font-size:12px;color:var(--muted);margin-bottom:1px"><span data-proj="${parent.id}" style="cursor:pointer;font-weight:600">${esc(parent.name)}</span> ›</div>`:""}<h1>${esc(p.name)}</h1><div class="sub">${custName(p.customerId)?`<b>${esc(custName(p.customerId))}</b> · `:""}${esc(p.category||"—")} · ${cap(p.space)} · ${cap(p.status)} · priority ${cap(p.priority)}</div></div></div>
     <div style="display:flex;gap:8px"><button class="btn ghost" id="editProj">Edit</button><button class="btn primary" id="addTaskP">+ Task</button></div></div>`;
   h+=`<div class="sec" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px">
     <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px">NEXT ACTION</div>
@@ -1057,11 +1064,13 @@ function editTask(id,forceProj){
 function editProject(id,forceCustomer,forceParent){
   const p=id?state.projects.find(x=>x.id===id):{name:"",customerId:forceCustomer||null,parentId:forceParent||null,kind:"project",category:"Alliance",space:(scope==="personal"?"personal":"business"),status:"active",priority:"med",nextAction:"",notes:""};
   const isNew=!id;const cats=["Alliance","Cambodia JV","Side venture","Personal"];
+  let photo=p.photo||"";
   const custOpts=`<option value="">— No customer —</option>`+state.customers.map(c=>`<option value="${c.id}" ${p.customerId===c.id?'selected':''}>${esc(c.name)}</option>`).join("");
   const banned=id?[id,...descendantsOf(id).map(x=>x.id)]:[];
   const parentOpts=`<option value="">— None (top-level) —</option>`+state.projects.filter(x=>!banned.includes(x.id)).map(x=>`<option value="${x.id}" ${p.parentId===x.id?'selected':''}>${esc(x.name)}</option>`).join("");
   openModal(`<h2>${isNew?"New project":"Edit project"}</h2>
     <div class="field"><label>Project name</label><input id="p_name" value="${esc(p.name)}" placeholder="e.g. Cambodia warehouse build"></div>
+    <div class="field"><label>Logo / picture</label><div style="display:flex;align-items:center;gap:12px" id="p_photoWrap">${logoBox(p.name,photo,52)}<button class="btn ghost" id="p_pick" style="padding:7px 12px">Upload</button>${photo?`<button class="btn ghost" id="p_rmphoto" style="padding:7px 12px">Remove</button>`:""}</div></div>
     <div class="row2"><div class="field"><label>Kind</label><select id="p_kind"><option value="project" ${p.kind!=='ongoing'?'selected':''}>Project (has an end)</option><option value="ongoing" ${p.kind==='ongoing'?'selected':''}>Ongoing responsibility</option></select></div><div class="field"><label>Part of (parent)</label><select id="p_parent">${parentOpts}</select></div></div>
     <div class="field"><label>Customer</label><select id="p_cust">${custOpts}</select></div>
     <div class="row2"><div class="field"><label>Category</label><select id="p_cat">${cats.map(c=>`<option ${p.category===c?'selected':''}>${c}</option>`).join("")}</select></div><div class="field"><label>Priority</label><select id="p_prio">${PRIOS.map(([v,l])=>`<option value="${v}" ${p.priority===v?'selected':''}>${l}</option>`).join("")}</select></div></div>
@@ -1070,11 +1079,14 @@ function editProject(id,forceCustomer,forceParent){
     <div class="field"><label>Notes</label><textarea id="p_notes" placeholder="Background, key contacts, numbers…">${esc(p.notes||"")}</textarea></div>
     <div class="modal-act">${isNew?"":`<button class="btn danger mr" id="p_del">Delete</button>`}<button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="p_save">${isNew?"Create":"Save"}</button></div>`);
   $("p_name").focus();
+  function refreshPhoto(){$("p_photoWrap").innerHTML=`${logoBox($("p_name").value,photo,52)}<button class="btn ghost" id="p_pick" style="padding:7px 12px">Upload</button>${photo?`<button class="btn ghost" id="p_rmphoto" style="padding:7px 12px">Remove</button>`:""}`;wirePhoto();}
+  function wirePhoto(){$("p_pick").onclick=()=>pickPhoto(d=>{photo=d;refreshPhoto();});const rm=$("p_rmphoto");if(rm)rm.onclick=()=>{photo="";refreshPhoto();};}
+  wirePhoto();
   $("p_save").onclick=async()=>{
     const name=$("p_name").value.trim();if(!name){toast("Name the project");return;}
-    const patch={name,customerId:$("p_cust").value||null,parentId:$("p_parent").value||null,kind:$("p_kind").value,category:$("p_cat").value,space:$("p_space").value,status:$("p_status").value,priority:$("p_prio").value,nextAction:$("p_na").value.trim(),notes:$("p_notes").value.trim()};
+    const patch={name,photo,customerId:$("p_cust").value||null,parentId:$("p_parent").value||null,kind:$("p_kind").value,category:$("p_cat").value,space:$("p_space").value,status:$("p_status").value,priority:$("p_prio").value,nextAction:$("p_na").value.trim(),notes:$("p_notes").value.trim()};
     if(isNew){
-      const {data,error}=await sb.from("projects").insert({name:patch.name,customer_id:patch.customerId,parent_id:patch.parentId,kind:patch.kind,category:patch.category,space:patch.space,status:patch.status,priority:patch.priority,next_action:patch.nextAction,notes:patch.notes,log:[]}).select();
+      const {data,error}=await sb.from("projects").insert({name:patch.name,photo:patch.photo,customer_id:patch.customerId,parent_id:patch.parentId,kind:patch.kind,category:patch.category,space:patch.space,status:patch.status,priority:patch.priority,next_action:patch.nextAction,notes:patch.notes,log:[]}).select();
       if(error){toast("Couldn't create");return;}const np=mapProj(data[0]);state.projects.push(np);openProjectId=patch.parentId||np.id;view="projects";openCustomerId=null;toast("Project created");
       if(np.customerId){const cu=state.customers.find(x=>x.id===np.customerId);if(cu&&cu.type==="sales")writeCustomer(cu.id,{type:"both"});}
     }else{writeProject(id,patch);toast("Saved");}
@@ -1281,7 +1293,7 @@ function renderProducts(){
 function productRow(p){
   const name=p.dosage?`${esc(p.name)} <span style="color:var(--muted);font-weight:400">${esc(p.dosage)}</span>`:esc(p.name);
   const cf=(p.fields||[]).filter(f=>f.label||f.value).slice(0,3).map(f=>`<span class="pill mut">${esc(f.label)}${f.value?": "+esc(f.value):""}</span>`).join("");
-  return `<div class="task" data-prod="${p.id}" style="cursor:pointer;${p.active?'':'opacity:.55'}"><div class="prio ${p.active?'med':'low'}"></div>
+  return `<div class="task" data-prod="${p.id}" style="cursor:pointer;${p.active?'':'opacity:.55'}"><div class="prio ${p.active?'med':'low'}"></div>${logoBox(p.name,p.photo,34)}
     <div class="task-body"><div class="task-title">${name}${p.sku?` <span style="color:var(--faint);font-weight:400;font-size:12px">${esc(p.sku)}</span>`:""}</div>
     <div class="task-meta">${p.ruo?`<span class="pill" style="background:var(--ink);color:var(--bg);font-weight:600">Research only</span>`:""}${p.unit?`<span>${esc(p.unit)}</span>`:""}${p.packSize?`<span>${esc(p.packSize)}</span>`:""}${cf}${!p.active?`<span class="pill mut">inactive</span>`:""}</div></div>
     <div style="text-align:right;font-weight:500;font-size:14px;flex-shrink:0">${fmtMoney(p.currency,p.price)}</div>
@@ -1290,11 +1302,13 @@ function productRow(p){
 function editProduct(id){
   const p=id?state.products.find(x=>x.id===id):{name:"",sku:"",category:"",dosage:"",unit:"",packSize:"",price:"",currency:"USD",ruo:false,active:true,fields:[],notes:""};
   const isNew=!id;const currencies=Object.keys(CURSYM);
+  let photo=p.photo||"";
   const cats=Array.from(new Set(state.products.map(x=>x.category).filter(Boolean)));
   let fields=JSON.parse(JSON.stringify(p.fields||[]));
   const inS="padding:8px 7px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface-2);outline:none;font-size:13px";
   openModal(`<h2>${isNew?"New product":"Edit product"}</h2>
     <div class="row2"><div class="field"><label>Product name</label><input id="pr_name" value="${esc(p.name)}" placeholder="e.g. Amoxicillin, Sodium citrate…"></div><div class="field"><label>Dosage / strength</label><input id="pr_dose" value="${esc(p.dosage)}" placeholder="e.g. 500mg, 99% — optional"></div></div>
+    <div class="field"><label>Logo / picture</label><div style="display:flex;align-items:center;gap:12px" id="pr_photoWrap">${logoBox(p.name,photo,52)}<button class="btn ghost" id="pr_pick" style="padding:7px 12px">Upload</button>${photo?`<button class="btn ghost" id="pr_rmphoto" style="padding:7px 12px">Remove</button>`:""}</div></div>
     <div class="row2"><div class="field"><label>Code / SKU</label><input id="pr_sku" value="${esc(p.sku)}" placeholder="Optional"></div><div class="field"><label>Category</label><input id="pr_cat" value="${esc(p.category)}" placeholder="e.g. Antibiotics, Reagents" list="pr_catlist"><datalist id="pr_catlist">${cats.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></div></div>
     <div class="row2"><div class="field"><label>Unit</label><input id="pr_unit" value="${esc(p.unit)}" placeholder="box, vial, g, ml…"></div><div class="field"><label>Pack size</label><input id="pr_pack" value="${esc(p.packSize)}" placeholder="e.g. 10×10, 5ml"></div></div>
     <div class="row2"><div class="field"><label>Default price</label><input id="pr_price" type="number" step="any" value="${p.price}" placeholder="0.00"></div><div class="field"><label>Currency</label><select id="pr_cur">${currencies.map(c=>`<option value="${c}" ${p.currency===c?'selected':''}>${c}</option>`).join("")}</select></div></div>
@@ -1311,13 +1325,16 @@ function editProduct(id){
     $("pr_fields").querySelectorAll("[data-pfrm]").forEach(b=>b.onclick=()=>{fields.splice(+b.dataset.pfrm,1);renderPF();});
   }
   renderPF();$("pr_name").focus();
+  function refreshPPhoto(){$("pr_photoWrap").innerHTML=`${logoBox($("pr_name").value,photo,52)}<button class="btn ghost" id="pr_pick" style="padding:7px 12px">Upload</button>${photo?`<button class="btn ghost" id="pr_rmphoto" style="padding:7px 12px">Remove</button>`:""}`;wirePPhoto();}
+  function wirePPhoto(){$("pr_pick").onclick=()=>pickPhoto(d=>{photo=d;refreshPPhoto();});const rm=$("pr_rmphoto");if(rm)rm.onclick=()=>{photo="";refreshPPhoto();};}
+  wirePPhoto();
   $("pr_addfield").onclick=()=>{fields.push({label:"",value:""});renderPF();};
   $("pr_save").onclick=async()=>{
     const name=$("pr_name").value.trim();if(!name){toast("Name the product");return;}
     const cleanF=fields.filter(f=>(f.label||"").trim()||(f.value||"").trim()).map(f=>({label:(f.label||"").trim(),value:(f.value||"").trim()}));
-    const patch={name,dosage:$("pr_dose").value.trim(),sku:$("pr_sku").value.trim(),category:$("pr_cat").value.trim(),unit:$("pr_unit").value.trim(),packSize:$("pr_pack").value.trim(),price:Number($("pr_price").value)||0,currency:$("pr_cur").value,ruo:$("pr_ruo").value==="1",active:$("pr_active").value==="1",fields:cleanF,notes:$("pr_notes").value.trim()};
+    const patch={name,photo,dosage:$("pr_dose").value.trim(),sku:$("pr_sku").value.trim(),category:$("pr_cat").value.trim(),unit:$("pr_unit").value.trim(),packSize:$("pr_pack").value.trim(),price:Number($("pr_price").value)||0,currency:$("pr_cur").value,ruo:$("pr_ruo").value==="1",active:$("pr_active").value==="1",fields:cleanF,notes:$("pr_notes").value.trim()};
     if(isNew){
-      const {data,error}=await sb.from("products").insert({name:patch.name,dosage:patch.dosage,sku:patch.sku,category:patch.category,unit:patch.unit,pack_size:patch.packSize,price:patch.price,currency:patch.currency,ruo:patch.ruo,active:patch.active,fields:patch.fields,notes:patch.notes}).select();
+      const {data,error}=await sb.from("products").insert({name:patch.name,photo:patch.photo,dosage:patch.dosage,sku:patch.sku,category:patch.category,unit:patch.unit,pack_size:patch.packSize,price:patch.price,currency:patch.currency,ruo:patch.ruo,active:patch.active,fields:patch.fields,notes:patch.notes}).select();
       if(error){toast("Couldn't create");return;}state.products.push(mapProduct(data[0]));toast("Product created");
     }else{writeProduct(id,patch);toast("Saved");}
     closeModal();render();
