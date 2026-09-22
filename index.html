@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Command Desk</title>
 
 <!-- ===== PWA / home-screen install ===== -->
@@ -648,6 +648,21 @@ const byPrio=(a,b)=>({high:0,med:1,low:2}[a.priority]-{high:0,med:1,low:2}[b.pri
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 const cap=s=>s?s[0].toUpperCase()+s.slice(1):"";
 
+/* ---- browser history: make Back/Forward walk the app ---- */
+let _navKey=null,_navPop=false;
+function navSnap(){return JSON.stringify({view,openProjectId,openCustomerId,openStakeId,searchQ});}
+function syncHist(){
+  const k=navSnap();
+  if(_navPop){_navPop=false;_navKey=k;return;}
+  if(k===_navKey)return;
+  const first=_navKey===null;_navKey=k;
+  try{history[first?"replaceState":"pushState"]({nav:k},"");}catch(e){}
+}
+window.addEventListener("popstate",e=>{
+  const k=(e.state&&e.state.nav)||navSnap();
+  try{const s=JSON.parse(k);view=s.view;openProjectId=s.openProjectId;openCustomerId=s.openCustomerId;openStakeId=s.openStakeId;searchQ=s.searchQ;}catch(_){}
+  _navPop=true;if(USER)render();
+});
 function render(){
   if(!USER)return;
   updateCounts();
@@ -663,6 +678,7 @@ function render(){
   else if(view==="calendar")renderCalendar();
   else if(view==="search")renderSearch();
   document.querySelectorAll("#nav button,#mnav button[data-view]").forEach(b=>b.classList.toggle("on",b.dataset.view===view));
+  syncHist();
 }
 const scopedTasks=()=>state.tasks.filter(t=>inScope(taskSpace(t)));
 const scopedProjects=()=>state.projects.filter(p=>inScope(p.space));
@@ -820,7 +836,7 @@ function pickPhoto(cb,max){max=max||320;
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();
     r.onload=()=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;const s=Math.min(1,max/Math.max(w,h));
       const cw=Math.round(w*s),ch=Math.round(h*s);const cv=document.createElement("canvas");cv.width=cw;cv.height=ch;
-      cv.getContext("2d").drawImage(img,0,0,cw,ch);cb(cv.toDataURL("image/jpeg",0.82));};img.src=r.result;};
+      const ctx=cv.getContext("2d");ctx.fillStyle="#ffffff";ctx.fillRect(0,0,cw,ch);ctx.drawImage(img,0,0,cw,ch);cb(cv.toDataURL("image/jpeg",0.82));};img.src=r.result;};
     r.readAsDataURL(f);};
   inp.click();
 }
