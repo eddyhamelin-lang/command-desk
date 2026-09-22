@@ -812,7 +812,7 @@ function avatar(name,photo,size){size=size||40;
 }
 function logoBox(name,photo,size){size=size||40;const r=Math.max(6,Math.round(size*0.22));
   const init=(name||"?").trim().split(/\s+/).map(s=>s[0]).slice(0,2).join("").toUpperCase();
-  return photo?`<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:var(--surface) center/contain no-repeat url('${photo}');flex-shrink:0;border:1px solid var(--border)"></div>`
+  return photo?`<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:#ffffff center/contain no-repeat url('${photo}');flex-shrink:0;border:1px solid var(--border)"></div>`
     :`<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;font-size:${Math.round(size*0.34)}px;font-weight:700;color:var(--muted);flex-shrink:0">${esc(init)}</div>`;
 }
 function pickPhoto(cb,max){max=max||320;
