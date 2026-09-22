@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Command Desk">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>/* mark installed-app mode early so the nav can clear the status bar even on iOS versions that don't support the display-mode media query */try{if(window.navigator.standalone===true||window.matchMedia('(display-mode:standalone)').matches)document.documentElement.classList.add('pwa');}catch(e){}</script>
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNWFhN2VlIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmY2ZmJmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIGZpbGw9InVybCgjZykiLz48ZyBmaWxsPSIjZmZmIj48cmVjdCB4PSI0OCIgeT0iMjIiIHdpZHRoPSI4NCIgaGVpZ2h0PSI1NCIgcng9IjciLz48cGF0aCBkPSJNMTggNzAgTDY4IDU4IEw2OCA5OCBMMTggMTEwIFoiLz48cGF0aCBkPSJNMTYyIDcwIEwxMTIgNTggTDExMiA5OCBMMTYyIDExMCBaIi8+PC9nPjxnIGZpbGw9IiMyZjZmYmYiPjxyZWN0IHg9IjU0IiB5PSIyOCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjQyIiByeD0iMyIvPjxwYXRoIGQ9Ik0yNSA3NCBMNjIgNjUgTDYyIDkyIEwyNSAxMDMgWiIvPjxwYXRoIGQ9Ik0xNTUgNzQgTDExOCA2NSBMMTE4IDkyIEwxNTUgMTAzIFoiLz48L2c+PGcgZmlsbD0iIzJmNmZiZiI+PGNpcmNsZSBjeD0iOTAiIGN5PSI5OCIgcj0iMjkiLz48cGF0aCBkPSJNNTAgMTU4IEM1MCAxMTIgMTMwIDExMiAxMzAgMTU4IFoiLz48L2c+PGcgZmlsbD0iI2ZmZiI+PGNpcmNsZSBjeD0iOTAiIGN5PSI5OCIgcj0iMjMiLz48cGF0aCBkPSJNNTYgMTU4IEM1NiAxMTggMTI0IDExOCAxMjQgMTU4IFoiLz48L2c+PC9zdmc+">
 <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQ29tbWFuZCBEZXNrIiwic2hvcnRfbmFtZSI6IkNvbW1hbmQgRGVzayIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZTExMTYiLCJ0aGVtZV9jb2xvciI6IiMwZTExMTYiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F4T0RBZ01UZ3dJaUIzYVdSMGFEMGlNVGd3SWlCb1pXbG5hSFE5SWpFNE1DSStQR1JsWm5NK1BHeHBibVZoY2tkeVlXUnBaVzUwSUdsa1BTSm5JaUI0TVQwaU1DSWdlVEU5SWpBaUlIZ3lQU0l4SWlCNU1qMGlNU0krUEhOMGIzQWdiMlptYzJWMFBTSXdJaUJ6ZEc5d0xXTnZiRzl5UFNJak5XRmhOMlZsSWk4K1BITjBiM0FnYjJabWMyVjBQU0l4SWlCemRHOXdMV052Ykc5eVBTSWpNbVkyWm1KbUlpOCtQQzlzYVc1bFlYSkhjbUZrYVdWdWRENDhMMlJsWm5NK1BISmxZM1FnZDJsa2RHZzlJakU0TUNJZ2FHVnBaMmgwUFNJeE9EQWlJR1pwYkd3OUluVnliQ2dqWnlraUx6NDhaeUJtYVd4c1BTSWpabVptSWo0OGNtVmpkQ0I0UFNJME9DSWdlVDBpTWpJaUlIZHBaSFJvUFNJNE5DSWdhR1ZwWjJoMFBTSTFOQ0lnY25nOUlqY2lMejQ4Y0dGMGFDQmtQU0pOTVRnZ056QWdURFk0SURVNElFdzJPQ0E1T0NCTU1UZ2dNVEV3SUZvaUx6NDhjR0YwYUNCa1BTSk5NVFl5SURjd0lFd3hNVElnTlRnZ1RERXhNaUE1T0NCTU1UWXlJREV4TUNCYUlpOCtQQzluUGp4bklHWnBiR3c5SWlNeVpqWm1ZbVlpUGp4eVpXTjBJSGc5SWpVMElpQjVQU0l5T0NJZ2QybGtkR2c5SWpjeUlpQm9aV2xuYUhROUlqUXlJaUJ5ZUQwaU15SXZQanh3WVhSb0lHUTlJazB5TlNBM05DQk1OaklnTmpVZ1REWXlJRGt5SUV3eU5TQXhNRE1nV2lJdlBqeHdZWFJvSUdROUlrMHhOVFVnTnpRZ1RERXhPQ0EyTlNCTU1URTRJRGt5SUV3eE5UVWdNVEF6SUZvaUx6NDhMMmMrUEdjZ1ptbHNiRDBpSXpKbU5tWmlaaUkrUEdOcGNtTnNaU0JqZUQwaU9UQWlJR041UFNJNU9DSWdjajBpTWpraUx6NDhjR0YwYUNCa1BTSk5OVEFnTVRVNElFTTFNQ0F4TVRJZ01UTXdJREV4TWlBeE16QWdNVFU0SUZvaUx6NDhMMmMrUEdjZ1ptbHNiRDBpSTJabVppSStQR05wY21Oc1pTQmplRDBpT1RBaUlHTjVQU0k1T0NJZ2NqMGlNak1pTHo0OGNHRjBhQ0JrUFNKTk5UWWdNVFU0SUVNMU5pQXhNVGdnTVRJMElERXhPQ0F4TWpRZ01UVTRJRm9pTHo0OEwyYytQQzl6ZG1jKyIsInNpemVzIjoiMTgweDE4MCA1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
 
@@ -214,6 +215,7 @@
   @media (display-mode:standalone){
     .mobile-nav{padding-top:max(env(safe-area-inset-top,0px),56px)}
   }
+  html.pwa .mobile-nav{padding-top:max(env(safe-area-inset-top,0px),56px)}
 </style>
 </head>
 <body>
@@ -423,7 +425,7 @@ const contactsFor=cid=>state.contacts.filter(c=>c.customerId===cid);
 const inScope=(sp)=>scope==="all"||sp===scope;
 
 async function reload(seedIfEmpty){
-  const [{data:cu,error:e0},{data:co,error:e3},{data:pj,error:e1},{data:tk,error:e2},{data:od,error:e4},{data:ex,error:e5},{data:pr,error:e6},{data:jr,error:e7},{data:sk,error:e8},{data:tp,error:e9}]=await Promise.all([
+  const q=()=>Promise.all([
     sb.from("customers").select("*"),
     sb.from("contacts").select("*"),
     sb.from("projects").select("*"),
@@ -435,7 +437,17 @@ async function reload(seedIfEmpty){
     sb.from("stakeholders").select("*"),
     sb.from("trips").select("*")
   ]);
-  if(e0||e1||e2||e3||e4||e5||e6||e7||e8||e9){toast("Load error — "+esc((e0||e1||e2||e3||e4||e5||e6||e7||e8||e9).message));return;}
+  let R=await q(); let err=R.map(x=>x.error).find(Boolean);
+  // Auth/clock-skew errors ("JWT issued at future", expired): refresh the token and retry once.
+  if(err&&/jwt|token|issued|expired|exp|401|PGRST301/i.test(((err.message||"")+" "+(err.code||"")))){
+    try{await sb.auth.refreshSession();}catch(_){}
+    await new Promise(r=>setTimeout(r,1200));
+    R=await q(); err=R.map(x=>x.error).find(Boolean);
+  }
+  if(err){const m=(err.message||"")+"";
+    toast(/issued.*future|clock|future/i.test(m)?"Time is out of sync — turn on iPhone Settings › General › Date & Time › Set Automatically, then reload.":"Load error — "+esc(m));
+    return;}
+  const [{data:cu},{data:co},{data:pj},{data:tk},{data:od},{data:ex},{data:pr},{data:jr},{data:sk},{data:tp}]=R;
   state.customers=(cu||[]).map(mapCust);
   state.contacts=(co||[]).map(mapContact);
   state.projects=(pj||[]).map(mapProj);
