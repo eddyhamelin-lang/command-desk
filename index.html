@@ -209,6 +209,11 @@
     .stats{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}
     .qadd .go span{display:none}.qadd .go{padding:8px 11px}
   }
+  /* Installed PWA on iOS: reserve nav-coloured space so the menu clears the
+     status bar / dynamic island. env() reads 0 on some devices, so floor it. */
+  @media (display-mode:standalone){
+    .mobile-nav{padding-top:max(env(safe-area-inset-top,0px),56px)}
+  }
 </style>
 </head>
 <body>
