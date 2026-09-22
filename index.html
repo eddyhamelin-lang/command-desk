@@ -207,6 +207,11 @@
     .stats{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}
     .qadd .go span{display:none}.qadd .go{padding:8px 11px}
   }
+  /* Installed-app (home screen) fallback: some phones report safe-area inset as 0,
+     so guarantee the top menu clears the status bar. */
+  @media (display-mode:standalone),(display-mode:fullscreen){
+    .mobile-nav{padding-top:max(env(safe-area-inset-top,0px),44px)}
+  }
 </style>
 </head>
 <body>
