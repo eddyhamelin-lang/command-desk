@@ -7,10 +7,11 @@
 <title>Command Desk</title>
 
 <!-- ===== PWA / home-screen install ===== -->
-<meta name="theme-color" content="#0e1116">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b141a" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Command Desk">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNWFhN2VlIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmY2ZmJmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIGZpbGw9InVybCgjZykiLz48ZyBmaWxsPSIjZmZmIj48cmVjdCB4PSI0OCIgeT0iMjIiIHdpZHRoPSI4NCIgaGVpZ2h0PSI1NCIgcng9IjciLz48cGF0aCBkPSJNMTggNzAgTDY4IDU4IEw2OCA5OCBMMTggMTEwIFoiLz48cGF0aCBkPSJNMTYyIDcwIEwxMTIgNTggTDExMiA5OCBMMTYyIDExMCBaIi8+PC9nPjxnIGZpbGw9IiMyZjZmYmYiPjxyZWN0IHg9IjU0IiB5PSIyOCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjQyIiByeD0iMyIvPjxwYXRoIGQ9Ik0yNSA3NCBMNjIgNjUgTDYyIDkyIEwyNSAxMDMgWiIvPjxwYXRoIGQ9Ik0xNTUgNzQgTDExOCA2NSBMMTE4IDkyIEwxNTUgMTAzIFoiLz48L2c+PGcgZmlsbD0iIzJmNmZiZiI+PGNpcmNsZSBjeD0iOTAiIGN5PSI5OCIgcj0iMjkiLz48cGF0aCBkPSJNNTAgMTU4IEM1MCAxMTIgMTMwIDExMiAxMzAgMTU4IFoiLz48L2c+PGcgZmlsbD0iI2ZmZiI+PGNpcmNsZSBjeD0iOTAiIGN5PSI5OCIgcj0iMjMiLz48cGF0aCBkPSJNNTYgMTU4IEM1NiAxMTggMTI0IDExOCAxMjQgMTU4IFoiLz48L2c+PC9zdmc+">
 <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiQ29tbWFuZCBEZXNrIiwic2hvcnRfbmFtZSI6IkNvbW1hbmQgRGVzayIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZTExMTYiLCJ0aGVtZV9jb2xvciI6IiMwZTExMTYiLCJzdGFydF91cmwiOiIuIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jaUlIWnBaWGRDYjNnOUlqQWdNQ0F4T0RBZ01UZ3dJaUIzYVdSMGFEMGlNVGd3SWlCb1pXbG5hSFE5SWpFNE1DSStQR1JsWm5NK1BHeHBibVZoY2tkeVlXUnBaVzUwSUdsa1BTSm5JaUI0TVQwaU1DSWdlVEU5SWpBaUlIZ3lQU0l4SWlCNU1qMGlNU0krUEhOMGIzQWdiMlptYzJWMFBTSXdJaUJ6ZEc5d0xXTnZiRzl5UFNJak5XRmhOMlZsSWk4K1BITjBiM0FnYjJabWMyVjBQU0l4SWlCemRHOXdMV052Ykc5eVBTSWpNbVkyWm1KbUlpOCtQQzlzYVc1bFlYSkhjbUZrYVdWdWRENDhMMlJsWm5NK1BISmxZM1FnZDJsa2RHZzlJakU0TUNJZ2FHVnBaMmgwUFNJeE9EQWlJR1pwYkd3OUluVnliQ2dqWnlraUx6NDhaeUJtYVd4c1BTSWpabVptSWo0OGNtVmpkQ0I0UFNJME9DSWdlVDBpTWpJaUlIZHBaSFJvUFNJNE5DSWdhR1ZwWjJoMFBTSTFOQ0lnY25nOUlqY2lMejQ4Y0dGMGFDQmtQU0pOTVRnZ056QWdURFk0SURVNElFdzJPQ0E1T0NCTU1UZ2dNVEV3SUZvaUx6NDhjR0YwYUNCa1BTSk5NVFl5SURjd0lFd3hNVElnTlRnZ1RERXhNaUE1T0NCTU1UWXlJREV4TUNCYUlpOCtQQzluUGp4bklHWnBiR3c5SWlNeVpqWm1ZbVlpUGp4eVpXTjBJSGc5SWpVMElpQjVQU0l5T0NJZ2QybGtkR2c5SWpjeUlpQm9aV2xuYUhROUlqUXlJaUJ5ZUQwaU15SXZQanh3WVhSb0lHUTlJazB5TlNBM05DQk1OaklnTmpVZ1REWXlJRGt5SUV3eU5TQXhNRE1nV2lJdlBqeHdZWFJvSUdROUlrMHhOVFVnTnpRZ1RERXhPQ0EyTlNCTU1URTRJRGt5SUV3eE5UVWdNVEF6SUZvaUx6NDhMMmMrUEdjZ1ptbHNiRDBpSXpKbU5tWmlaaUkrUEdOcGNtTnNaU0JqZUQwaU9UQWlJR041UFNJNU9DSWdjajBpTWpraUx6NDhjR0YwYUNCa1BTSk5OVEFnTVRVNElFTTFNQ0F4TVRJZ01UTXdJREV4TWlBeE16QWdNVFU0SUZvaUx6NDhMMmMrUEdjZ1ptbHNiRDBpSTJabVppSStQR05wY21Oc1pTQmplRDBpT1RBaUlHTjVQU0k1T0NJZ2NqMGlNak1pTHo0OGNHRjBhQ0JrUFNKTk5UWWdNVFU0SUVNMU5pQXhNVGdnTVRJMElERXhPQ0F4TWpRZ01UVTRJRm9pTHo0OEwyYytQQzl6ZG1jKyIsInNpemVzIjoiMTgweDE4MCA1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
 
@@ -198,19 +199,15 @@
   code{background:var(--surface-2);padding:1px 6px;border-radius:5px;font-size:12.5px}
   @media(max-width:760px){
     body{flex-direction:column}.side{display:none}
-    .mobile-nav{display:flex;position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border);padding:calc(4px + env(safe-area-inset-top,0px)) 6px 4px;overflow-x:auto}
+    .mobile-nav{display:flex;position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--border);padding:6px;overflow-x:auto}
     .mobile-nav button{flex:1;min-width:64px;padding:9px 6px;border-radius:8px;color:var(--muted);font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap}
     .mobile-nav button.on{color:var(--accent-ink);background:var(--accent-wash)}
     .mobile-nav button .ic{width:18px;height:18px}
     .mobile-nav button .ct{font-size:10px}
-    .topbar{padding:10px 14px}.content{padding:16px 14px}
+    .topbar{padding:10px 14px;background:var(--surface);backdrop-filter:none}
+    .content{padding:16px max(14px,env(safe-area-inset-right,0px)) 16px max(14px,env(safe-area-inset-left,0px))}
     .stats{grid-template-columns:repeat(2,1fr)}.row2{grid-template-columns:1fr}
     .qadd .go span{display:none}.qadd .go{padding:8px 11px}
-  }
-  /* Installed-app (home screen) fallback: some phones report safe-area inset as 0,
-     so guarantee the top menu clears the status bar. */
-  @media (display-mode:standalone),(display-mode:fullscreen){
-    .mobile-nav{padding-top:max(env(safe-area-inset-top,0px),44px)}
   }
 </style>
 </head>
