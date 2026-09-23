@@ -321,6 +321,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_ymGF9zSemsPFNLOjR_ftNg_XyOzdUBy";    /
 let sb=null, USER=null;
 let state={customers:[],contacts:[],projects:[],tasks:[],orders:[],expenses:[],products:[],journal:[],stakeholders:[],trips:[]};
 let view="today", openProjectId=null, openCustomerId=null, openStakeId=null, searchQ="";
+let FX={RMB:7.10,LAK:21500};   // units of that currency per 1 USD; edited in Settings
 let taskFilter={status:"open",project:"all",prio:"all"};
 let custFilter="all"; // all | sales | project
 let projFilter="all"; // all | project | ongoing
@@ -398,22 +399,30 @@ const mapProj=r=>({id:r.id,name:r.name,customerId:r.customer_id,parentId:r.paren
 const childrenOf=pid=>state.projects.filter(p=>p.parentId===pid);
 function descendantsOf(pid){const out=[];const walk=id=>childrenOf(id).forEach(c=>{out.push(c);walk(c.id);});walk(pid);return out;}
 const projTaskCount=pid=>{const ids=[pid,...descendantsOf(pid).map(p=>p.id)];return state.tasks.filter(t=>ids.includes(t.projectId)&&t.status!=="done"&&t.status!=="cancelled").length;};
-const mapCust=r=>({id:r.id,name:r.name,type:r.type||"sales",company:r.company||"",country:r.country||"",contact:r.contact||"",email:r.email||"",phone:r.phone||"",photo:r.photo||"",status:r.status||"active",space:r.space||"business",followUp:r.follow_up||"",log:r.log||[],fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
+const mapCust=r=>({id:r.id,name:r.name,type:r.type||"sales",company:r.company||"",country:r.country||"",contact:r.contact||"",email:r.email||"",phone:r.phone||"",photo:r.photo||"",status:r.status||"active",space:r.space||"business",followUp:r.follow_up||"",log:r.log||[],fields:r.fields||[],interests:r.interests||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapExpense=r=>({id:r.id,expDate:r.exp_date||"",description:r.description||"",amount:Number(r.amount)||0,currency:r.currency||"USD",category:r.category||"",reimburse:r.reimburse||"none",customerId:r.customer_id,projectId:r.project_id,receipt:r.receipt||"",space:r.space||"business",notes:r.notes||"",created:r.created_at});
 const mapContact=r=>({id:r.id,name:r.name,title:r.title||"",customerId:r.customer_id,company:r.company||"",email:r.email||"",phone:r.phone||"",photo:r.photo||"",space:r.space||"business",notes:r.notes||"",created:r.created_at,updated:r.updated_at});
-const mapOrder=r=>({id:r.id,customerId:r.customer_id,orderDate:r.order_date||"",status:r.status||"confirmed",currency:r.currency||"USD",items:r.items||[],tax:Number(r.tax)||0,shipping:Number(r.shipping)||0,commRate:Number(r.comm_rate)||0,commFlat:Number(r.comm_flat)||0,commPaid:r.comm_paid===true,fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
+const mapOrder=r=>({id:r.id,customerId:r.customer_id,orderDate:r.order_date||"",status:r.status||"confirmed",currency:r.currency||"USD",items:r.items||[],tax:Number(r.tax)||0,shipping:Number(r.shipping)||0,commRate:Number(r.comm_rate)||0,commFlat:Number(r.comm_flat)||0,commPaid:r.comm_paid===true,amountPaid:Number(r.amount_paid)||0,paymentStatus:r.payment_status||"",finalPaymentDue:r.final_payment_due||"",logisticsStatus:r.logistics_status||"",returnStatus:r.return_status||"",commissionReceived:Number(r.commission_received)||0,fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapProduct=r=>({id:r.id,name:r.name,photo:r.photo||"",sku:r.sku||"",category:r.category||"",dosage:r.dosage||"",unit:r.unit||"",packSize:r.pack_size||"",price:Number(r.price)||0,currency:r.currency||"USD",ruo:r.ruo===true,active:r.active!==false,fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapJournal=r=>({id:r.id,entryDate:r.entry_date||"",text:r.text||"",type:r.type||"Note",customerId:r.customer_id,projectId:r.project_id,space:r.space||"business",done:r.done_at||null,created:r.created_at});
 const mapStake=r=>({id:r.id,name:r.name,role:r.role||"",org:r.org||"",relationship:r.relationship||"Colleague",email:r.email||"",phone:r.phone||"",photo:r.photo||"",space:r.space||"business",followUp:r.follow_up||"",log:r.log||[],fields:r.fields||[],notes:r.notes||"",created:r.created_at,updated:r.updated_at});
 const mapTrip=r=>({id:r.id,destination:r.destination||"",purpose:r.purpose||"",startDate:r.start_date||"",endDate:r.end_date||"",space:r.space||"business",notes:r.notes||"",created:r.created_at});
 /* money + order math */
-const CURSYM={USD:"$",LAK:"₭",THB:"฿",KHR:"៛",CNY:"¥",MYR:"RM ",EUR:"€",GBP:"£",SGD:"S$",VND:"₫"};
+const CURSYM={USD:"$",RMB:"¥",LAK:"₭",THB:"฿",KHR:"៛",MYR:"RM ",EUR:"€",GBP:"£",SGD:"S$",VND:"₫"};
 function fmtMoney(cur,n){const s=CURSYM[cur]||((cur||"")+" ");const v=Math.round((Number(n)||0)*100)/100;return s+v.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});}
+/* currency → USD (Eddy is paid in USD). FX holds units-per-USD, so USD = amount / rate. */
+function fxRate(cur){cur=cur||"USD";if(cur==="USD")return 1;const u=Number(FX[cur]);return u>0?1/u:0;}
+function toUSD(n,cur){return (Number(n)||0)*fxRate(cur);}
+function fmtUSD(n){return "$"+(Math.round((Number(n)||0)*100)/100).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});}
+function orderRemaining(o){return Math.max(0,orderTotal(o)-(Number(o.amountPaid)||0));}
+function orderCommRemaining(o){return Math.max(0,orderCommission(o)-(Number(o.commissionReceived)||0));}
 const lineNet=it=>(Number(it.qty)||0)*(Number(it.price)||0)*(1-(Number(it.disc)||0)/100);
 const orderSubtotal=o=>(o.items||[]).reduce((s,it)=>s+lineNet(it),0);
 const orderTotal=o=>{const sub=orderSubtotal(o);return sub*(1+(Number(o.tax)||0)/100)+(Number(o.shipping)||0);};
 const orderCommission=o=>orderSubtotal(o)*(Number(o.commRate)||0)/100+(Number(o.commFlat)||0);
-function customerCommission(cid){const os=state.orders.filter(o=>o.customerId===cid&&o.status!=="cancelled");const all={},pend={};os.forEach(o=>{const c=orderCommission(o);if(c){all[o.currency]=(all[o.currency]||0)+c;if(!o.commPaid)pend[o.currency]=(pend[o.currency]||0)+c;}});return {all,pend};}
+function customerCommission(cid){const os=state.orders.filter(o=>o.customerId===cid&&o.status!=="cancelled");const all={},pend={};os.forEach(o=>{const c=orderCommission(o);if(c){all[o.currency]=(all[o.currency]||0)+c;const out=orderCommRemaining(o);if(out>0.005)pend[o.currency]=(pend[o.currency]||0)+out;}});return {all,pend};}
+/* USD rollups for a customer (all orders converted to USD) */
+function custUSD(cid){const os=state.orders.filter(o=>o.customerId===cid&&o.status!=="cancelled");let sales=0,paid=0,remain=0,commDue=0,commOut=0;os.forEach(o=>{sales+=toUSD(orderTotal(o),o.currency);paid+=toUSD(Number(o.amountPaid)||0,o.currency);remain+=toUSD(orderRemaining(o),o.currency);commDue+=toUSD(orderCommission(o),o.currency);commOut+=toUSD(orderCommRemaining(o),o.currency);});return {sales,paid,remain,commDue,commOut};}
 function customerSales(cid){const os=state.orders.filter(o=>o.customerId===cid&&o.status!=="cancelled");const byCur={};os.forEach(o=>{byCur[o.currency]=(byCur[o.currency]||0)+orderTotal(o);});return {byCur,count:os.length};}
 function salesLabel(byCur){const ks=Object.keys(byCur).filter(k=>byCur[k]>0);return ks.length?ks.map(k=>fmtMoney(k,byCur[k])).join(" · "):"";}
 function productAgg(cid){const m={};state.orders.filter(o=>o.customerId===cid&&o.status!=="cancelled").forEach(o=>(o.items||[]).forEach(it=>{const nm=(it.name||"—").trim();const key=nm.toLowerCase()+"|"+o.currency;m[key]=m[key]||{name:nm,qty:0,value:0,currency:o.currency};m[key].qty+=Number(it.qty)||0;m[key].value+=lineNet(it);}));return Object.values(m).sort((a,b)=>b.value-a.value);}
@@ -458,8 +467,12 @@ async function reload(seedIfEmpty){
   state.journal=(jr||[]).map(mapJournal);
   state.stakeholders=(sk||[]).map(mapStake);
   state.trips=(tp||[]).map(mapTrip);
+  try{const {data:sset}=await sb.from("app_settings").select("fx").limit(1);if(sset&&sset[0]&&sset[0].fx)FX=Object.assign({RMB:7.10,LAK:21500},sset[0].fx);}catch(_){}
   if(seedIfEmpty&&!state.projects.length&&!state.tasks.length&&!state.customers.length)await seed();
 }
+async function saveFX(fx){FX=Object.assign({},FX,fx);
+  const {error}=await sb.from("app_settings").upsert({user_id:USER.id,fx:FX,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(error)toast("Couldn't save rates");}
 async function seed(){
   const custRows=[
     {name:"Healthy Malaysia",type:"both",company:"",country:"Malaysia",status:"active",space:"business",notes:"Commercial supply agreement for ALI-TIRZEP (tirzepatide) clinical programme supply."},
@@ -561,7 +574,7 @@ async function writeProject(id,patch){
 async function writeCustomer(id,patch){
   const c=state.customers.find(x=>x.id===id);Object.assign(c,patch);render();
   const db={updated_at:new Date().toISOString()};
-  ["name","type","company","country","contact","email","phone","photo","status","space","notes","log","fields"].forEach(k=>{if(k in patch)db[k]=patch[k];});
+  ["name","type","company","country","contact","email","phone","photo","status","space","notes","log","fields","interests"].forEach(k=>{if(k in patch)db[k]=patch[k];});
   if("followUp"in patch)db.follow_up=patch.followUp||null;
   const {error}=await sb.from("customers").update(db).eq("id",id);
   if(error){toast("Sync error");reload().then(render);}
@@ -592,6 +605,12 @@ async function writeOrder(id,patch){
   if("commRate"in patch)db.comm_rate=patch.commRate;
   if("commFlat"in patch)db.comm_flat=patch.commFlat;
   if("commPaid"in patch)db.comm_paid=patch.commPaid;
+  if("amountPaid"in patch)db.amount_paid=patch.amountPaid;
+  if("paymentStatus"in patch)db.payment_status=patch.paymentStatus;
+  if("finalPaymentDue"in patch)db.final_payment_due=patch.finalPaymentDue;
+  if("logisticsStatus"in patch)db.logistics_status=patch.logisticsStatus;
+  if("returnStatus"in patch)db.return_status=patch.returnStatus;
+  if("commissionReceived"in patch)db.commission_received=patch.commissionReceived;
   const {error}=await sb.from("orders").update(db).eq("id",id);
   if(error){toast("Sync error");reload().then(render);}
 }
@@ -904,13 +923,19 @@ function renderCustomerDetail(){
     const sl=salesLabel(customerSales(c.id).byCur);
     const comm=customerCommission(c.id);const commPend=salesLabel(comm.pend);const commAll=salesLabel(comm.all);
     const agg=productAgg(c.id).slice(0,6);
-    h+=`<div class="sec"><div class="sec-head"><span class="dot dot-mut"></span><h2>Sales</h2><span class="c">${cOrders.length} order${cOrders.length===1?'':'s'}</span><button class="btn ghost" id="expCustXlsx" style="margin-left:auto;padding:5px 11px;font-size:12.5px">Export Excel</button><button class="btn ghost" id="addOrderC" style="padding:5px 11px;font-size:12.5px">+ Order</button></div>`;
+    h+=`<div class="sec"><div class="sec-head"><span class="dot dot-mut"></span><h2>Sales</h2><span class="c">${cOrders.length} order${cOrders.length===1?'':'s'}</span><button class="btn ghost" id="expCustXlsx" style="margin-left:auto;padding:5px 11px;font-size:12.5px">Report (Excel)</button><button class="btn ghost" id="addOrderC" style="padding:5px 11px;font-size:12.5px">+ Order</button></div>`;
     if(sl)h+=`<div style="font-family:var(--display);font-size:23px;font-weight:600;margin-bottom:${commAll?'2px':'12px'}">${sl}<span style="font-size:12px;color:var(--muted);font-weight:500;font-family:var(--sans)"> total</span></div>`;
     if(commAll)h+=`<div style="font-size:13px;margin-bottom:12px"><b>${commAll}</b> commission${commPend?` <span style="color:var(--muted)">· ${commPend} still coming to you</span>`:` <span style="color:var(--muted)">· all received</span>`}</div>`;
+    if(cOrders.length){const u=custUSD(c.id);h+=`<div style="display:flex;gap:8px 16px;flex-wrap:wrap;font-size:12.5px;margin-bottom:12px;padding:9px 12px;background:var(--surface-2);border-radius:10px">
+      <span>USD sales <b>${fmtUSD(u.sales)}</b></span><span>Paid <b>${fmtUSD(u.paid)}</b></span><span${u.remain>0.005?' style="color:var(--amber)"':''}>Outstanding <b>${fmtUSD(u.remain)}</b></span><span>Comm. due <b>${fmtUSD(u.commDue)}</b></span><span${u.commOut>0.005?' style="color:var(--amber)"':''}>Comm. left <b>${fmtUSD(u.commOut)}</b></span></div>`;}
     if(agg.length)h+=`<div style="margin-bottom:14px">${agg.map(a=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>${esc(a.name)} <span style="color:var(--muted)">×${a.qty}</span></span><span style="font-weight:500">${fmtMoney(a.currency,a.value)}</span></div>`).join("")}</div>`;
     h+=cOrders.length?`<div class="list">${cOrders.map(orderRow).join("")}</div>`:`<div class="empty" style="padding:16px 0;text-align:left;color:var(--faint);font-size:13px">No orders yet. Add one to start tracking sales.</div>`;
     h+=`</div>`;
   }
+  const ints=c.interests||[];
+  h+=`<div class="sec"><div class="sec-head"><span class="dot dot-mut"></span><h2>Products of interest</h2><span class="c">${ints.length}</span><button class="btn ghost" id="addInterest" style="margin-left:auto;padding:5px 11px;font-size:12.5px">+ Add</button></div>`;
+  h+=ints.length?`<div class="list">${ints.map((it,i)=>`<div class="task"><div class="task-body"><div class="task-title" style="font-size:14px">${esc(it.product||"—")}</div><div class="task-meta">${it.interested?`<span class="pill ${it.interested==='Yes'?'green':(it.interested==='No'?'mut':'amber')}">${esc(it.interested)}</span>`:""}${it.priority?`<span class="pill blue">${esc(it.priority)}</span>`:""}${it.notes?`<span style="color:var(--faint)">${esc(it.notes)}</span>`:""}</div></div><div class="task-act"><button class="icobtn" data-intdel="${i}" title="Remove">✕</button></div></div>`).join("")}</div>`:`<div class="empty" style="padding:16px;text-align:left;color:var(--faint);font-size:13px">Nothing yet. Track products this customer might buy but hasn't.</div>`;
+  h+=`</div>`;
   h+=`<div class="sec"><div class="sec-head"><span class="dot dot-blue"></span><h2>Projects</h2><span class="c">${projs.length}</span></div>`;
   h+=projs.length?`<div class="pgrid">${projs.map(pcard).join("")}</div>`:`<div class="empty" style="padding:16px;text-align:left;color:var(--faint);font-size:13px">${c.type==="sales"?"Sales-only customer. Add a project here if that changes.":`No projects yet. Add one above and it'll be linked to ${esc(c.name)}.`}</div>`;
   h+=`</div>`;content.innerHTML=h;bind();
@@ -1013,6 +1038,8 @@ function bind(){
   const aoc=$("addOrderC");if(aoc)aoc.onclick=()=>editOrder(null,openCustomerId);
   const ecx=$("expCustXlsx");if(ecx)ecx.onclick=()=>exportCustomerXlsx(openCustomerId);
   const eax=$("expAllXlsx");if(eax)eax.onclick=()=>exportAllSalesXlsx();
+  const ai=$("addInterest");if(ai)ai.onclick=()=>editInterest();
+  content.querySelectorAll("[data-intdel]").forEach(b=>b.onclick=()=>{const c=state.customers.find(x=>x.id===openCustomerId);if(!c)return;const ints=(c.interests||[]).filter((_,i)=>i!==+b.dataset.intdel);writeCustomer(c.id,{interests:ints});toast("Removed");});
   const cla=$("cl_add");if(cla)cla.onclick=addCustLog;
   const clt=$("cl_text");if(clt)clt.onkeydown=e=>{if(e.key==="Enter")addCustLog();};
   content.querySelectorAll("[data-custlogdel]").forEach(b=>b.onclick=()=>delCustLog(+b.dataset.custlogdel));
@@ -1214,14 +1241,24 @@ function editContact(id,forceCustomer){
 }
 /* ---------- orders / sales ---------- */
 const ORDST=[["quote","Quote"],["confirmed","Confirmed"],["delivered","Delivered"],["paid","Paid"],["cancelled","Cancelled"]];
+const PAYST=[["","—"],["unpaid","Unpaid"],["deposit","Deposit paid"],["partial","Partially paid"],["paid","Paid in full"],["overdue","Overdue"]];
+const FINDUE=[["","—"],["delivery","On delivery"],["completion","On completion"],["date","On agreed date"],["paidfull","Paid in full"]];
+const LOGST=[["","—"],["production","In production"],["awaiting","Awaiting logistics"],["transit","In transit"],["delivered","Delivered"],["cancelled","Cancelled"]];
+const RETST=[["","—"],["na","N/A"],["awaiting","Awaiting return"],["returned","Returned"],["notreq","Not required"]];
+const lookup=(arr,v)=>{const f=arr.find(x=>x[0]===v);return f?f[1]:(v||"");};
 function orderRow(o){
-  const st=(ORDST.find(x=>x[0]===o.status)||[])[1]||o.status;
-  const paid=o.status==="paid";
-  const n=(o.items||[]).length;const comm=orderCommission(o);
+  const paid=o.paymentStatus==="paid"||o.status==="paid";
+  const n=(o.items||[]).length;const comm=orderCommission(o);const rem=orderRemaining(o);
+  const usd=o.currency!=="USD"?` <span style="color:var(--faint);font-weight:400;font-size:11px">≈ ${fmtUSD(toUSD(orderTotal(o),o.currency))}</span>`:"";
   const d=o.orderDate?new Date(o.orderDate+"T00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"";
+  const payPill=o.paymentStatus?`<span class="pill ${o.paymentStatus==='paid'?'green':(o.paymentStatus==='overdue'?'red':'amber')}">${lookup(PAYST,o.paymentStatus)}</span>`:"";
+  const remPill=(rem>0.005&&o.paymentStatus!=="unpaid")?`<span class="pill mut" title="Payment remaining">${fmtMoney(o.currency,rem)} left${o.finalPaymentDue?` · ${lookup(FINDUE,o.finalPaymentDue).toLowerCase()}`:""}</span>`:"";
+  const logPill=o.logisticsStatus?`<span class="pill blue">${lookup(LOGST,o.logisticsStatus)}</span>`:"";
+  const retPill=(o.returnStatus&&o.returnStatus!=="na")?`<span class="pill amber">${lookup(RETST,o.returnStatus)}</span>`:"";
+  const commPill=comm?`<span class="pill ${orderCommRemaining(o)<0.005?'green':'amber'}" data-commtoggle="${o.id}" style="cursor:pointer" title="Tap to mark ${orderCommRemaining(o)<0.005?'pending':'received'}">comm ${fmtMoney(o.currency,comm)}${orderCommRemaining(o)<0.005?'':' •'}</span>`:"";
   return `<div class="task" data-order="${o.id}" style="cursor:pointer"><div class="prio ${o.status==='cancelled'?'low':(paid?'high':'med')}"></div>
-    <div class="task-body"><div class="task-title">${fmtMoney(o.currency,orderTotal(o))} <span style="color:var(--muted);font-weight:400;font-size:12.5px">· ${n} item${n===1?'':'s'}</span></div>
-    <div class="task-meta"><span class="pill ${paid?'green':'mut'}" data-orderpaid="${o.id}" style="cursor:pointer" title="Tap to mark ${paid?'unpaid':'paid'}">${paid?'✓ Paid':st}</span>${d?`<span>${d}</span>`:""}${comm?`<span class="pill ${o.commPaid?'green':'amber'}" data-commtoggle="${o.id}" style="cursor:pointer" title="Tap to mark ${o.commPaid?'pending':'received'}">comm ${fmtMoney(o.currency,comm)}${o.commPaid?'':' •'}</span>`:""}${o.notes?`<span style="color:var(--faint)">${esc(o.notes.slice(0,40))}</span>`:""}</div></div>
+    <div class="task-body"><div class="task-title">${fmtMoney(o.currency,orderTotal(o))}${usd} <span style="color:var(--muted);font-weight:400;font-size:12.5px">· ${n} item${n===1?'':'s'}</span></div>
+    <div class="task-meta">${payPill}${remPill}${logPill}${retPill}${d?`<span>${d}</span>`:""}${commPill}${o.notes?`<span style="color:var(--faint)">${esc(o.notes.slice(0,40))}</span>`:""}</div></div>
     <div class="task-act"><button class="icobtn" data-order="${o.id}" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4v16h16v-7"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></svg></button></div></div>`;
 }
 function editOrder(id,forceCustomer){
@@ -1240,7 +1277,10 @@ function editOrder(id,forceCustomer){
     <div class="field"><label>Items <span style="color:var(--faint);font-weight:400">— type to pick from your product list</span></label><div id="o_items"></div><datalist id="o_pl">${prodList}</datalist><button class="btn ghost" id="o_add" style="padding:6px 12px;font-size:12.5px;margin-top:2px">+ Add line</button></div>
     <div class="row2"><div class="field"><label>Tax %</label><input id="o_tax" type="number" step="any" value="${o.tax||0}"></div><div class="field"><label>Shipping</label><input id="o_ship" type="number" step="any" value="${o.shipping||0}"></div></div>
     <div class="row2"><div class="field"><label>Your commission %</label><input id="o_commr" type="number" step="any" value="${o.commRate||0}" placeholder="0"></div><div class="field"><label>+ fixed commission</label><input id="o_commf" type="number" step="any" value="${o.commFlat||0}" placeholder="0"></div></div>
-    <div class="field"><label>Commission status</label><select id="o_commp"><option value="0" ${!o.commPaid?'selected':''}>Pending — coming to me</option><option value="1" ${o.commPaid?'selected':''}>Received</option></select></div>
+    <div style="border-top:1px solid var(--border);margin:8px 0 4px;padding-top:8px;font-size:11.5px;font-weight:700;letter-spacing:.03em;color:var(--muted)">PAYMENT &amp; FULFILMENT</div>
+    <div class="row2"><div class="field"><label>Amount paid to date</label><input id="o_paid" type="number" step="any" value="${o.amountPaid||0}"></div><div class="field"><label>Payment status</label><select id="o_payst">${PAYST.map(([v,l])=>`<option value="${v}" ${(o.paymentStatus||"")===v?'selected':''}>${l}</option>`).join("")}</select></div></div>
+    <div class="row2"><div class="field"><label>Final payment due</label><select id="o_findue">${FINDUE.map(([v,l])=>`<option value="${v}" ${(o.finalPaymentDue||"")===v?'selected':''}>${l}</option>`).join("")}</select></div><div class="field"><label>Logistics status</label><select id="o_log">${LOGST.map(([v,l])=>`<option value="${v}" ${(o.logisticsStatus||"")===v?'selected':''}>${l}</option>`).join("")}</select></div></div>
+    <div class="row2"><div class="field"><label>Return status</label><select id="o_ret">${RETST.map(([v,l])=>`<option value="${v}" ${(o.returnStatus||"")===v?'selected':''}>${l}</option>`).join("")}</select></div><div class="field"><label>Commission received (amount)</label><input id="o_commrec" type="number" step="any" value="${o.commissionReceived||0}"></div></div>
     <div id="o_summary" style="border-top:1px solid var(--border);padding-top:10px;margin:4px 0 10px"></div>
     <div class="field"><label>Custom fields <span style="color:var(--faint);font-weight:400">— anything else about this order</span></label><div id="o_fields"></div><button class="btn ghost" id="o_addfield" style="padding:6px 12px;font-size:12.5px;margin-top:2px">+ Add field</button></div>
     <div class="field"><label>Notes</label><textarea id="o_notes" placeholder="PO number, delivery terms…">${esc(o.notes||"")}</textarea></div>
@@ -1253,7 +1293,12 @@ function editOrder(id,forceCustomer){
       (tax?`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>Tax ${tax}%</span><span>${fmtMoney(currency,sub*tax/100)}</span></div>`:"")+
       (ship?`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>Shipping</span><span>${fmtMoney(currency,ship)}</span></div>`:"")+
       `<div style="display:flex;justify-content:space-between;font-family:var(--display);font-size:19px;font-weight:600;margin-top:5px"><span>Total</span><span>${fmtMoney(currency,sub*(1+tax/100)+ship)}</span></div>`+
-      (comm?`<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)"><span>Your commission${cr?` (${cr}%)`:""}</span><span>${fmtMoney(currency,comm)}</span></div>`:"");
+      (comm?`<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)"><span>Your commission${cr?` (${cr}%)`:""}</span><span>${fmtMoney(currency,comm)}</span></div>`:"")+
+      (()=>{const total=sub*(1+tax/100)+ship;const pd=Number(($("o_paid")||{}).value)||0;const rem=Math.max(0,total-pd);let x="";
+        if(pd>0)x+=`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>Paid to date</span><span>${fmtMoney(currency,pd)}</span></div>`;
+        if(rem>0.005&&pd>0)x+=`<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--amber)"><span>Remaining</span><span>${fmtMoney(currency,rem)}</span></div>`;
+        if(currency!=="USD")x+=`<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--faint);margin-top:2px"><span>≈ total in USD</span><span>${fmtUSD(toUSD(total,currency))}</span></div>`;
+        return x;})();
   }
   function renderItems(){
     $("o_items").innerHTML=items.map((it,i)=>`<div style="display:flex;gap:5px;margin-bottom:6px;align-items:center;flex-wrap:wrap">
@@ -1289,15 +1334,18 @@ function editOrder(id,forceCustomer){
   }
   renderItems();renderFields();refreshTotals();
   $("o_cur").onchange=()=>{currency=$("o_cur").value;renderItems();refreshTotals();};
-  $("o_tax").oninput=refreshTotals;$("o_ship").oninput=refreshTotals;$("o_commr").oninput=refreshTotals;$("o_commf").oninput=refreshTotals;
+  $("o_tax").oninput=refreshTotals;$("o_ship").oninput=refreshTotals;$("o_commr").oninput=refreshTotals;$("o_commf").oninput=refreshTotals;$("o_paid").oninput=refreshTotals;
   $("o_add").onclick=()=>{items.push({name:"",unit:"",qty:1,price:0,disc:0});renderItems();refreshTotals();};
   $("o_addfield").onclick=()=>{fields.push({label:"",value:""});renderFields();};
   $("o_save").onclick=async()=>{
     const cleanItems=items.filter(it=>(it.name||"").trim()||Number(it.qty)||Number(it.price)).map(it=>({name:(it.name||"").trim(),unit:(it.unit||"").trim(),qty:Number(it.qty)||0,price:Number(it.price)||0,disc:Number(it.disc)||0}));
     const cleanFields=fields.filter(f=>(f.label||"").trim()||(f.value||"").trim()).map(f=>({label:(f.label||"").trim(),value:(f.value||"").trim()}));
-    const patch={customerId:$("o_cust").value||null,orderDate:$("o_date").value,status:$("o_status").value,currency:$("o_cur").value,items:cleanItems,tax:Number($("o_tax").value)||0,shipping:Number($("o_ship").value)||0,commRate:Number($("o_commr").value)||0,commFlat:Number($("o_commf").value)||0,commPaid:$("o_commp").value==="1",fields:cleanFields,notes:$("o_notes").value.trim()};
+    const commRate=Number($("o_commr").value)||0,commFlat=Number($("o_commf").value)||0;
+    const commRec=Number($("o_commrec").value)||0;
+    const commDue=cleanItems.reduce((s,it)=>s+lineNet(it),0)*commRate/100+commFlat;
+    const patch={customerId:$("o_cust").value||null,orderDate:$("o_date").value,status:$("o_status").value,currency:$("o_cur").value,items:cleanItems,tax:Number($("o_tax").value)||0,shipping:Number($("o_ship").value)||0,commRate:commRate,commFlat:commFlat,commPaid:commRec>0&&commRec>=commDue-0.005,amountPaid:Number($("o_paid").value)||0,paymentStatus:$("o_payst").value,finalPaymentDue:$("o_findue").value,logisticsStatus:$("o_log").value,returnStatus:$("o_ret").value,commissionReceived:commRec,fields:cleanFields,notes:$("o_notes").value.trim()};
     if(isNew){
-      const {data,error}=await sb.from("orders").insert({customer_id:patch.customerId,order_date:patch.orderDate||null,status:patch.status,currency:patch.currency,items:patch.items,tax:patch.tax,shipping:patch.shipping,comm_rate:patch.commRate,comm_flat:patch.commFlat,comm_paid:patch.commPaid,fields:patch.fields,notes:patch.notes}).select();
+      const {data,error}=await sb.from("orders").insert({customer_id:patch.customerId,order_date:patch.orderDate||null,status:patch.status,currency:patch.currency,items:patch.items,tax:patch.tax,shipping:patch.shipping,comm_rate:patch.commRate,comm_flat:patch.commFlat,comm_paid:patch.commPaid,amount_paid:patch.amountPaid,payment_status:patch.paymentStatus,final_payment_due:patch.finalPaymentDue,logistics_status:patch.logisticsStatus,return_status:patch.returnStatus,commission_received:patch.commissionReceived,fields:patch.fields,notes:patch.notes}).select();
       if(error){toast("Couldn't save order");return;}state.orders.push(mapOrder(data[0]));toast("Order added");
     }else{writeOrder(id,patch);toast("Saved");}
     closeModal();render();
@@ -1591,26 +1639,29 @@ function sanitize(s){return String(s).replace(/[^\w.\- ]+/g,"_").trim();}
 function exportCustomerXlsx(cid){
   loadExcel(async()=>{
     const c=state.customers.find(x=>x.id===cid);if(!c)return;
-    toast("Building Excel…");
+    toast("Building report…");
     const orders=state.orders.filter(o=>o.customerId===cid).sort((a,b)=>a.orderDate<b.orderDate?-1:1);
-    const wb=new ExcelJS.Workbook();wb.creator="Command Desk";
-    const ws=wb.addWorksheet("Sales");
-    ws.columns=[{width:13},{width:8},{width:12},{width:7},{width:9},{width:13},{width:7},{width:11},{width:13},{width:13},{width:7}];
-    xlTitle(ws,"A1:K1","Sales — "+c.name);
-    ws.mergeCells("A2:K2");const st=ws.getCell("A2");st.value=[c.company,c.country,c.email,c.phone].filter(Boolean).join("   ·   ");st.font={color:{argb:"FF777777"},size:10};st.alignment={indent:1};
-    const salesL=salesLabel(customerSales(cid).byCur)||"—";const commL=salesLabel(customerCommission(cid).all)||"—";const commPend=salesLabel(customerCommission(cid).pend);
-    ws.mergeCells("A4:K4");const su=ws.getCell("A4");su.value=`Total sales: ${salesL}      Commission: ${commL}${commPend?` (${commPend} pending)`:""}      Generated ${new Date().toLocaleDateString()}`;su.font={bold:true,size:11};
-    xlHeaderRow(ws,6,["Date","Order #","Status","Items","Currency","Subtotal","Tax %","Shipping","Total","Commission","Paid"]);
-    orders.forEach((o,i)=>{const r=ws.getRow(7+i);
-      [o.orderDate,i+1,cap(o.status),(o.items||[]).length,o.currency,orderSubtotal(o),o.tax||0,o.shipping||0,orderTotal(o),orderCommission(o),o.commPaid?"Yes":"—"].forEach((v,k)=>{const cell=r.getCell(k+1);cell.value=v;cell.border=XL_THIN;cell.font={size:10};if([6,8,9,10].includes(k+1))cell.numFmt="#,##0.00";});});
-    // line items sheet
-    const li=wb.addWorksheet("Line items");
-    li.columns=[{width:13},{width:8},{width:32},{width:9},{width:8},{width:11},{width:7},{width:12},{width:9}];
-    xlTitle(li,"A1:I1","Line items — "+c.name);
-    xlHeaderRow(li,3,["Date","Order #","Product","Unit","Qty","Unit price","Disc %","Line total","Currency"]);
-    let rn=4;orders.forEach((o,i)=>{(o.items||[]).forEach(it=>{const r=li.getRow(rn++);
-      [o.orderDate,i+1,it.name,it.unit||"",Number(it.qty)||0,Number(it.price)||0,Number(it.disc)||0,lineNet(it),o.currency].forEach((v,k)=>{const cell=r.getCell(k+1);cell.value=v;cell.border=XL_THIN;cell.font={size:10};if([6,8].includes(k+1))cell.numFmt="#,##0.00";});});});
-    const buf=await wb.xlsx.writeBuffer();dlXlsx(buf,"Sales - "+sanitize(c.name)+".xlsx");toast("Excel downloaded ✓");
+    const cts=contactsFor(cid);const wb=new ExcelJS.Workbook();wb.creator="Command Desk";
+    // --- Customer sheet ---
+    const cs=wb.addWorksheet("Customer");
+    cs.columns=[{width:22},{width:34},{width:28},{width:22},{width:30}];
+    xlTitle(cs,"A1:E1","Customer — "+c.name);
+    let r=3;[["Company",c.company||""],["Type",CTYPE[c.type]||c.type||""],["Country",c.country||""],["Status",cap(c.status||"")],["Email",c.email||""],["Phone",c.phone||""],["Notes",c.notes||""]].forEach(([k,v])=>{cs.getCell("A"+r).value=k;cs.getCell("A"+r).font={bold:true,size:10};cs.getCell("B"+r).value=v;cs.getCell("B"+r).font={size:10};r++;});
+    r++;xlHeaderRow(cs,r,["Contact name","Title","Email","Phone","Notes"]);r++;
+    cts.forEach(ct=>{const row=cs.getRow(r++);[ct.name,ct.title,ct.email,ct.phone,ct.notes].forEach((v,k)=>{const cell=row.getCell(k+1);cell.value=v||"";cell.font={size:10};cell.border=XL_THIN;});});
+    if((c.interests||[]).length){r++;xlHeaderRow(cs,r,["Product of interest","Interested?","Priority","Notes"]);r++;
+      c.interests.forEach(it=>{const row=cs.getRow(r++);[it.product,it.interested,it.priority,it.notes].forEach((v,k)=>{const cell=row.getCell(k+1);cell.value=v||"";cell.font={size:10};cell.border=XL_THIN;});});}
+    // --- Orders sheet ---
+    const ws=wb.addWorksheet("Orders");
+    ws.columns=[{width:15},{width:11},{width:26},{width:7},{width:13},{width:12},{width:14},{width:12},{width:11},{width:13},{width:14},{width:15},{width:14},{width:13},{width:20},{width:7},{width:13},{width:12},{width:14}];
+    xlTitle(ws,"A1:S1","Orders — "+c.name);
+    const u=custUSD(cid);
+    ws.mergeCells("A2:S2");const su=ws.getCell("A2");su.value=`USD totals — sales ${fmtUSD(u.sales)} · paid ${fmtUSD(u.paid)} · outstanding ${fmtUSD(u.remain)} · commission due ${fmtUSD(u.commDue)} · commission left ${fmtUSD(u.commOut)}   (1 USD = ${FX.RMB} RMB = ${FX.LAK} LAK · generated ${new Date().toLocaleDateString()})`;su.font={bold:true,size:10};su.alignment={indent:1};
+    xlHeaderRow(ws,4,["Order ID","Date","Product / items","Cur.","Total invoiced","Amount paid","Payment remaining","Invoiced USD","Paid USD","Remaining USD","Payment status","Final payment due","Logistics","Return","Notes","Comm %","Commission due","Comm received","Comm outstanding"]);
+    orders.forEach((o,i)=>{const row=ws.getRow(5+i);
+      const items=(o.items||[]).map(it=>it.name).filter(Boolean).join(", ")||`${(o.items||[]).length} item(s)`;
+      [o.id,o.orderDate,items,o.currency,orderTotal(o),o.amountPaid||0,orderRemaining(o),toUSD(orderTotal(o),o.currency),toUSD(o.amountPaid||0,o.currency),toUSD(orderRemaining(o),o.currency),lookup(PAYST,o.paymentStatus),lookup(FINDUE,o.finalPaymentDue),lookup(LOGST,o.logisticsStatus),lookup(RETST,o.returnStatus),o.notes||"",o.commRate||0,orderCommission(o),o.commissionReceived||0,orderCommRemaining(o)].forEach((v,k)=>{const cell=row.getCell(k+1);cell.value=v;cell.border=XL_THIN;cell.font={size:9.5};if([5,6,7,8,9,10,17,18,19].includes(k+1))cell.numFmt="#,##0.00";});});
+    const buf=await wb.xlsx.writeBuffer();dlXlsx(buf,"Report - "+sanitize(c.name)+".xlsx");toast("Report downloaded ✓");
   });
 }
 function exportAllSalesXlsx(){
@@ -1652,6 +1703,18 @@ function addCustLog(){const inp=$("cl_text");if(!inp||!inp.value.trim())return;
   const log=[...(c.log||[]),{date:iso,type,text:inp.value.trim()}];
   writeCustomer(c.id,{log});toast("Logged");}
 function delCustLog(idx){const c=state.customers.find(x=>x.id===openCustomerId);if(!c||!c.log[idx])return;const log=c.log.filter((_,i)=>i!==idx);writeCustomer(c.id,{log});toast("Removed");}
+function editInterest(){
+  const c=state.customers.find(x=>x.id===openCustomerId);if(!c)return;
+  const prodList=state.products.filter(p=>p.active).map(p=>`<option value="${esc(p.name)}">`).join("");
+  openModal(`<h2>Product of interest</h2>
+    <div class="field"><label>Product</label><input id="in_prod" list="in_pl" placeholder="Product name" autofocus><datalist id="in_pl">${prodList}</datalist></div>
+    <div class="row2"><div class="field"><label>Interested?</label><select id="in_int"><option>Yes</option><option>Maybe</option><option>No</option></select></div><div class="field"><label>Priority</label><select id="in_pri"><option>High</option><option>Medium</option><option>Low</option></select></div></div>
+    <div class="field"><label>Notes</label><input id="in_notes" placeholder="e.g. asked for a quote in Q3"></div>
+    <div class="modal-act"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="in_save">Add</button></div>`);
+  $("in_save").onclick=()=>{const p=$("in_prod").value.trim();if(!p){toast("Type a product");return;}
+    const ints=[...(c.interests||[]),{product:p,interested:$("in_int").value,priority:$("in_pri").value,notes:$("in_notes").value.trim()}];
+    writeCustomer(c.id,{interests:ints});closeModal();toast("Added");};
+}
 
 /* ---------- expenses ---------- */
 const REIMB={none:"Own expense",pending:"Awaiting",reimbursed:"Reimbursed"};
@@ -1901,9 +1964,15 @@ function settingsDialog(){
   openModal(`<h2>Settings</h2>
     <div class="field"><label>Signed in as</label><input value="${esc(USER?USER.email:"")}" disabled></div>
     <div class="field"><label>Set / change password</label><input id="s_pw" type="password" placeholder="New password (6+ characters)" autocomplete="new-password"><button class="btn primary" id="s_pwbtn" style="margin-top:8px;padding:8px 14px">Save password</button><div style="color:var(--faint);font-size:12px;margin-top:6px">Set this, then log in with your email + this password on your phone.</div></div>
+    <div class="field"><label>Exchange rates <span style="color:var(--faint);font-weight:400">— used to total everything in USD</span></label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--muted)">1 USD =</span><input id="fx_rmb" type="number" step="any" value="${FX.RMB||''}" style="width:88px"><span style="font-size:13px">RMB</span>
+        <span style="font-size:13px;color:var(--muted)">1 USD =</span><input id="fx_lak" type="number" step="any" value="${FX.LAK||''}" style="width:104px"><span style="font-size:13px">LAK</span>
+        <button class="btn primary" id="fx_save" style="padding:7px 12px">Save rates</button></div></div>
     <p style="color:var(--muted);font-size:13px;margin-bottom:4px">Your data is synced to your own Supabase project. Download a copy anytime as a safety net.</p>
     <div class="modal-act" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn primary" id="s_exp">Download backup</button><button class="btn ghost" id="s_out">Sign out</button></div>
     <div class="modal-act" style="margin-top:20px"><button class="btn ghost" data-close>Close</button></div>`);
+  $("fx_save").onclick=async()=>{await saveFX({RMB:Number($("fx_rmb").value)||0,LAK:Number($("fx_lak").value)||0});toast("Rates saved ✓");render();};
   $("s_exp").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="command-desk-"+todayStr()+".json";a.click();toast("Backup downloaded");};
   $("s_out").onclick=async()=>{await sb.auth.signOut();location.reload();};
   $("s_pwbtn").onclick=async()=>{const p=$("s_pw").value;if(p.length<6){toast("Password needs 6+ characters");return;}const b=$("s_pwbtn");b.disabled=true;const o=b.textContent;b.textContent="Saving…";const {error}=await sb.auth.updateUser({password:p});b.disabled=false;b.textContent=o;if(error){toast("Couldn't save: "+error.message);}else{$("s_pw").value="";toast("Password updated ✓ — use it to log in anywhere");}};
