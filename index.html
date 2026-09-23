@@ -322,6 +322,7 @@ let sb=null, USER=null;
 let state={customers:[],contacts:[],projects:[],tasks:[],orders:[],expenses:[],products:[],journal:[],stakeholders:[],trips:[]};
 let view="today", openProjectId=null, openCustomerId=null, openStakeId=null, searchQ="";
 let FX={RMB:7.10,LAK:21500};   // units of that currency per 1 USD; edited in Settings
+let FXAUTO=true, FXUPD="";      // auto-refresh rates daily; last-updated ISO
 let taskFilter={status:"open",project:"all",prio:"all"};
 let custFilter="all"; // all | sales | project
 let projFilter="all"; // all | project | ongoing
@@ -467,12 +468,24 @@ async function reload(seedIfEmpty){
   state.journal=(jr||[]).map(mapJournal);
   state.stakeholders=(sk||[]).map(mapStake);
   state.trips=(tp||[]).map(mapTrip);
-  try{const {data:sset}=await sb.from("app_settings").select("fx").limit(1);if(sset&&sset[0]&&sset[0].fx)FX=Object.assign({RMB:7.10,LAK:21500},sset[0].fx);}catch(_){}
+  try{const {data:sset}=await sb.from("app_settings").select("fx,data").limit(1);
+    if(sset&&sset[0]){if(sset[0].fx)FX=Object.assign({RMB:7.10,LAK:21500},sset[0].fx);const d=sset[0].data||{};FXAUTO=d.fxAuto!==false;FXUPD=d.fxUpdated||"";}}catch(_){}
+  if(FXAUTO&&fxStale())fetchFX();   // refresh live rates in the background if a day old
   if(seedIfEmpty&&!state.projects.length&&!state.tasks.length&&!state.customers.length)await seed();
 }
-async function saveFX(fx){FX=Object.assign({},FX,fx);
-  const {error}=await sb.from("app_settings").upsert({user_id:USER.id,fx:FX,updated_at:new Date().toISOString()},{onConflict:"user_id"});
-  if(error)toast("Couldn't save rates");}
+function fxStale(){if(!FXUPD)return true;const t=new Date(FXUPD).getTime();return !t||(Date.now()-t)>20*3600*1000;}
+async function persistFX(){const {error}=await sb.from("app_settings").upsert({user_id:USER.id,fx:FX,data:{fxAuto:FXAUTO,fxUpdated:FXUPD},updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)toast("Couldn't save rates");}
+async function saveFX(fx){FX=Object.assign({},FX,fx);FXUPD=new Date().toISOString();await persistFX();}
+async function fetchFX(){
+  try{const r=await fetch("https://open.er-api.com/v6/latest/USD",{cache:"no-store"});const j=await r.json();
+    if(j&&j.result==="success"&&j.rates&&j.rates.CNY&&j.rates.LAK){
+      FX={RMB:Math.round(j.rates.CNY*1e4)/1e4,LAK:Math.round(j.rates.LAK)};
+      FXUPD=new Date().toISOString();await persistFX();
+      if(USER&&typeof render==="function")render();
+      return true;}
+  }catch(e){}
+  return false;
+}
 async function seed(){
   const custRows=[
     {name:"Healthy Malaysia",type:"both",company:"",country:"Malaysia",status:"active",space:"business",notes:"Commercial supply agreement for ALI-TIRZEP (tirzepatide) clinical programme supply."},
@@ -1968,11 +1981,17 @@ function settingsDialog(){
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span style="font-size:13px;color:var(--muted)">1 USD =</span><input id="fx_rmb" type="number" step="any" value="${FX.RMB||''}" style="width:88px"><span style="font-size:13px">RMB</span>
         <span style="font-size:13px;color:var(--muted)">1 USD =</span><input id="fx_lak" type="number" step="any" value="${FX.LAK||''}" style="width:104px"><span style="font-size:13px">LAK</span>
-        <button class="btn primary" id="fx_save" style="padding:7px 12px">Save rates</button></div></div>
+        <button class="btn primary" id="fx_save" style="padding:7px 12px">Save</button></div>
+      <label style="display:flex;gap:7px;align-items:center;margin-top:9px;font-size:13px;font-weight:400"><input type="checkbox" id="fx_auto" ${FXAUTO?'checked':''} style="width:auto;margin:0"> Update rates automatically (daily, live market rate)</label>
+      <div style="margin-top:7px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn ghost" id="fx_refresh" style="padding:6px 11px;font-size:12.5px">Refresh now</button><span id="fx_asof" style="font-size:12px;color:var(--faint)">${FXUPD?("Updated "+new Date(FXUPD).toLocaleString()):"Not updated yet"}</span></div></div>
     <p style="color:var(--muted);font-size:13px;margin-bottom:4px">Your data is synced to your own Supabase project. Download a copy anytime as a safety net.</p>
     <div class="modal-act" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn primary" id="s_exp">Download backup</button><button class="btn ghost" id="s_out">Sign out</button></div>
     <div class="modal-act" style="margin-top:20px"><button class="btn ghost" data-close>Close</button></div>`);
-  $("fx_save").onclick=async()=>{await saveFX({RMB:Number($("fx_rmb").value)||0,LAK:Number($("fx_lak").value)||0});toast("Rates saved ✓");render();};
+  $("fx_save").onclick=async()=>{await saveFX({RMB:Number($("fx_rmb").value)||0,LAK:Number($("fx_lak").value)||0});$("fx_asof").textContent="Updated "+new Date(FXUPD).toLocaleString();toast("Rates saved ✓");render();};
+  $("fx_auto").onchange=async()=>{FXAUTO=$("fx_auto").checked;await persistFX();if(FXAUTO&&fxStale())await refreshRatesUI();toast(FXAUTO?"Auto-update on":"Auto-update off");};
+  $("fx_refresh").onclick=refreshRatesUI;
+  async function refreshRatesUI(){const b=$("fx_refresh");b.disabled=true;b.textContent="Refreshing…";const ok=await fetchFX();b.disabled=false;b.textContent="Refresh now";
+    if(ok){$("fx_rmb").value=FX.RMB;$("fx_lak").value=FX.LAK;$("fx_asof").textContent="Updated "+new Date(FXUPD).toLocaleString();toast("Rates updated ✓");}else toast("Couldn't fetch rates — check connection");}
   $("s_exp").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="command-desk-"+todayStr()+".json";a.click();toast("Backup downloaded");};
   $("s_out").onclick=async()=>{await sb.auth.signOut();location.reload();};
   $("s_pwbtn").onclick=async()=>{const p=$("s_pw").value;if(p.length<6){toast("Password needs 6+ characters");return;}const b=$("s_pwbtn");b.disabled=true;const o=b.textContent;b.textContent="Saving…";const {error}=await sb.auth.updateUser({password:p});b.disabled=false;b.textContent=o;if(error){toast("Couldn't save: "+error.message);}else{$("s_pw").value="";toast("Password updated ✓ — use it to log in anywhere");}};
